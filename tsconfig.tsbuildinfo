@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/components/common/qrcode.tsx","./src/components/layout/appshell.tsx","./src/data/restaurant.ts","./src/pages/homepage.tsx","./src/pages/menupage.tsx","./src/pages/notfoundpage.tsx"],"version":"6.0.3"}
