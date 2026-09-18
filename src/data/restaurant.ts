@@ -1,6 +1,6 @@
 export const demoRestaurant = {
-  name: 'Spice Garden',
-  slug: 'spice-garden',
+  name: 'A1 FOOD',
+  slug: 'LODHA CROWN',
   description: 'A warm Indian kitchen serving regional favourites and family recipes.',
 }
 
