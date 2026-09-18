@@ -7,9 +7,9 @@ import { NotFoundPage } from './pages/NotFoundPage'
 export default function App() {
   return (
     <Routes>
-      <Route path="/menu/spice-garden" element={<MenuPage />} />
       <Route element={<AppShell />}>
         <Route index element={<HomePage />} />
+        <Route path="menu/:restaurantSlug" element={<MenuPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
