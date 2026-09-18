@@ -7,7 +7,7 @@ export type MenuItem = {
   isActive: boolean
 }
 
-const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? 'https://fastapi-projects-nu.vercel.app').replace(/\/$/, '')
+const apiBaseUrl = (import.meta.env.BACKEND_URL ?? 'https://fastapi-projects-nu.vercel.app').replace(/\/$/, '')
 
 export async function listMenuItems(): Promise<MenuItem[]> {
   let response: Response
