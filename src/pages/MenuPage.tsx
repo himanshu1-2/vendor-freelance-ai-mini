@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { demoRestaurant } from '../data/restaurant'
-import { listMenuItems, type MenuItem } from '../lib/menuApi'
+import { listMenuItems, listVendors, type MenuItem } from '../lib/menuApi'
 import { NotFoundPage } from './NotFoundPage'
 
 const currencyFormatter = new Intl.NumberFormat('en-IN', {
@@ -12,17 +11,28 @@ const currencyFormatter = new Intl.NumberFormat('en-IN', {
 
 export function MenuPage() {
   const { restaurantSlug } = useParams<{ restaurantSlug: string }>()
-  const [items, setItems] = useState<MenuItem[]>([])
+  const [items, setItems] = useState<Array<MenuItem & { price: number }>>([])
+  const [restaurantName, setRestaurantName] = useState(restaurantSlug ?? '')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const vendor = restaurantSlug ? { id: restaurantSlug, slug: restaurantSlug, name: restaurantSlug } : undefined
 
   async function loadMenu() {
     setIsLoading(true)
     setError(null)
 
     try {
-      const menuItems = await listMenuItems()
-      setItems(menuItems.filter((item) => item.isActive))
+      if (!restaurantSlug) {
+        throw new Error('Vendor route is missing.')
+      }
+
+      const [menuItems, vendors] = await Promise.all([
+        listMenuItems(restaurantSlug),
+        listVendors(),
+      ])
+      setItems(menuItems)
+      setRestaurantName(vendors.find((item) => item.slug === restaurantSlug)?.name ?? restaurantSlug)
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : 'Unable to load the menu.')
     } finally {
@@ -31,10 +41,10 @@ export function MenuPage() {
   }
 
   useEffect(() => {
-    if (restaurantSlug === demoRestaurant.slug) void loadMenu()
+    void loadMenu()
   }, [restaurantSlug])
 
-  if (restaurantSlug !== demoRestaurant.slug) {
+  if (!vendor) {
     return <NotFoundPage />
   }
 
@@ -42,12 +52,11 @@ export function MenuPage() {
     <section className="mx-auto min-h-[calc(100vh-73px)] w-full max-w-3xl px-5 py-10 sm:px-8 sm:py-16">
       <div className="w-full rounded-3xl border border-stone-200 bg-white p-7 shadow-sm sm:p-10">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-700">Customer menu route</p>
-        <h1 className="mt-4 font-display text-5xl font-semibold leading-tight tracking-tight text-stone-950">{demoRestaurant.name}</h1>
-        <p className="mt-4 max-w-xl text-lg leading-8 text-stone-600">{demoRestaurant.description}</p>
+        <h1 className="mt-4 font-display text-5xl font-semibold leading-tight tracking-tight text-stone-950">{restaurantName || vendor.name}</h1>
         <dl className="mt-8 grid gap-4 rounded-2xl bg-stone-50 p-5 text-sm sm:grid-cols-2">
           <div>
-            <dt className="font-semibold uppercase tracking-[0.16em] text-stone-400">Restaurant slug</dt>
-            <dd className="mt-1 font-medium text-stone-800">{demoRestaurant.slug}</dd>
+            <dt className="font-semibold uppercase tracking-[0.16em] text-stone-400">Vendor slug</dt>
+            <dd className="mt-1 font-medium text-stone-800">{vendor.slug}</dd>
           </div>
           <div>
             <dt className="font-semibold uppercase tracking-[0.16em] text-stone-400">Route</dt>
@@ -82,6 +91,7 @@ export function MenuPage() {
               {items.map((item) => (
                 <article key={item.id} className="flex items-start justify-between gap-5 p-5 first:rounded-t-2xl last:rounded-b-2xl hover:bg-stone-50">
                   <div className="min-w-0">
+                    <span className="mb-2 inline-flex rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-800">{item.category}</span>
                     <h3 className="font-display text-2xl font-semibold text-stone-950">{item.name}</h3>
                     {item.description && <p className="mt-2 text-sm leading-6 text-stone-600">{item.description}</p>}
                   </div>
@@ -92,9 +102,11 @@ export function MenuPage() {
           )}
         </div>
 
-        <Link className="mt-7 inline-flex rounded-full bg-stone-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-800 focus:outline-none focus:ring-4 focus:ring-amber-600/20" to="/">
-          Back to QR demo
-        </Link>
+        <div className="mt-7 flex gap-3">
+          <Link className="inline-flex rounded-full bg-stone-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-800 focus:outline-none focus:ring-4 focus:ring-amber-600/20" to="/">
+            Browse restaurants
+          </Link>
+        </div>
       </div>
     </section>
   )
